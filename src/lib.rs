@@ -3,7 +3,7 @@ use std::{
     io::{BufRead, BufReader, Write},
 };
 
-use zip::write::FileOptions;
+use flate2::Compression;
 
 struct RawLine<'a> {
     remote_addr: &'a str,
@@ -48,12 +48,8 @@ struct RawLine<'a> {
 // cookie_coresessionid: 96770a8e9ad8e169db75a85f40f66a3f980f56d4d21eb47a
 
 pub fn raw_to_csv() {
-    let zip_file = File::create("./data/20190101_csv.zip").unwrap();
-    let mut zip_writer = zip::ZipWriter::new(zip_file);
-    let options = FileOptions::default()
-        .compression_method(zip::CompressionMethod::Bzip2)
-        .unix_permissions(0o400);
-    zip_writer.start_file("20190101.cvs", options).unwrap();
+    let gz_file = File::create("./data/20190101_csv.gz").unwrap();
+    let mut gz_decoder = flate2::write::GzEncoder::new(gz_file, Compression::default());
     let file = File::open("./data/nginx-access_107.log-20190101.gz").unwrap();
     let file = flate2::read::GzDecoder::new(file);
     let buf_reader = BufReader::new(file);
@@ -144,7 +140,7 @@ pub fn raw_to_csv() {
             uniform_uri, params, headers, finger, file,
             region, action, browser, platform, static_url
         );
-        zip_writer.write_all(cvs.as_bytes()).unwrap();
+        gz_decoder.write_all(cvs.as_bytes()).unwrap();
     }
-    zip_writer.finish().unwrap();
+    gz_decoder.finish().unwrap();
 }
