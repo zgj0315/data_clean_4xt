@@ -5,6 +5,7 @@ use std::{
 };
 
 use flate2::Compression;
+use sha2::{Digest, Sha256};
 
 struct RawLine<'a> {
     remote_addr: &'a str,
@@ -113,7 +114,7 @@ pub fn raw_to_csv(input_file: &Path, output_file: &Path) {
         let uniform_uri = "-";
         let params = "-";
         let headers = "-";
-        let finger = "-";
+        let finger = hex::encode(Sha256::digest(format!("xt{}", client_ip)));
         let file = "-";
         let region = "-";
         let action = "-";
@@ -133,4 +134,15 @@ pub fn raw_to_csv(input_file: &Path, output_file: &Path) {
         gz_encoder.write_all(cvs.as_bytes()).unwrap();
     }
     gz_encoder.finish().unwrap();
+}
+
+#[cfg(test)]
+mod tests {
+    use sha2::{Digest, Sha256};
+
+    #[test]
+    fn it_works() {
+        let hash = Sha256::digest(b"132.12.35.22");
+        println!("{:?}", hex::encode(hash));
+    }
 }
