@@ -4,4 +4,5 @@ name = "data_clean_4xt"
 version = "0.1.0"
 
 [dependencies]
+flate2 = "1.0"
 zip = "0.6"

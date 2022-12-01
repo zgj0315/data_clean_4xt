@@ -54,7 +54,8 @@ pub fn raw_to_csv() {
         .compression_method(zip::CompressionMethod::Bzip2)
         .unix_permissions(0o400);
     zip_writer.start_file("20190101.cvs", options).unwrap();
-    let file = File::open("./data/nginx-access_107.log-20190101").unwrap();
+    let file = File::open("./data/nginx-access_107.log-20190101.gz").unwrap();
+    let file = flate2::read::GzDecoder::new(file);
     let buf_reader = BufReader::new(file);
     for line in buf_reader.lines() {
         let line = line.unwrap();
