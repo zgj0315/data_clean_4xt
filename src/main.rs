@@ -1,6 +1,6 @@
-use lib::read_file_by_line;
+use lib::raw_to_csv;
 
 mod lib;
 fn main() {
-    read_file_by_line();
+    raw_to_csv();
 }
