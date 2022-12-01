@@ -1,6 +1,7 @@
 use std::{
     fs::File,
     io::{BufRead, BufReader, Write},
+    path::Path,
 };
 
 use flate2::Compression;
@@ -47,9 +48,9 @@ struct RawLine<'a> {
 // upstream_addr: 10.14.79.101:80
 // cookie_coresessionid: 96770a8e9ad8e169db75a85f40f66a3f980f56d4d21eb47a
 
-pub fn raw_to_csv(input_file: &str, output_file: &str) {
-    let input_file = format!("./data/{}", input_file);
-    let output_file = format!("./data/{}", output_file);
+pub fn raw_to_csv(input_file: &Path, output_file: &Path) {
+    // let input_file = format!("./data/{}", input_file);
+    // let output_file = format!("./data/{}", output_file);
     let output_file = File::create(output_file).unwrap();
     let mut gz_encoder = flate2::write::GzEncoder::new(output_file, Compression::default());
     let input_file = File::open(input_file).unwrap();
@@ -130,7 +131,6 @@ pub fn raw_to_csv(input_file: &str, output_file: &str) {
             region, action, browser, platform, static_url
         );
         gz_encoder.write_all(cvs.as_bytes()).unwrap();
-        break;
     }
     gz_encoder.finish().unwrap();
 }
