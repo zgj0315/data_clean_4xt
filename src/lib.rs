@@ -1,9 +1,10 @@
 use std::{
     fs::File,
     io::{BufRead, BufReader, Write},
+    path::Path,
 };
 
-use zip::write::FileOptions;
+use flate2::Compression;
 
 struct RawLine<'a> {
     remote_addr: &'a str,
@@ -47,45 +48,30 @@ struct RawLine<'a> {
 // upstream_addr: 10.14.79.101:80
 // cookie_coresessionid: 96770a8e9ad8e169db75a85f40f66a3f980f56d4d21eb47a
 
-pub fn raw_to_csv() {
-    let zip_file = File::create("./data/20190101_csv.zip").unwrap();
-    let mut zip_writer = zip::ZipWriter::new(zip_file);
-    let options = FileOptions::default()
-        .compression_method(zip::CompressionMethod::Bzip2)
-        .unix_permissions(0o400);
-    zip_writer.start_file("20190101.cvs", options).unwrap();
-    let file = File::open("./data/nginx-access_107.log-20190101.gz").unwrap();
-    let file = flate2::read::GzDecoder::new(file);
-    let buf_reader = BufReader::new(file);
+pub fn raw_to_csv(input_file: &Path, output_file: &Path) {
+    // let input_file = format!("./data/{}", input_file);
+    // let output_file = format!("./data/{}", output_file);
+    let output_file = File::create(output_file).unwrap();
+    let mut gz_encoder = flate2::write::GzEncoder::new(output_file, Compression::default());
+    let input_file = File::open(input_file).unwrap();
+    let gz_decoder = flate2::read::GzDecoder::new(input_file);
+    let buf_reader = BufReader::new(gz_decoder);
     for line in buf_reader.lines() {
         let line = line.unwrap();
         let (remote_addr, line) = line.split_once(" ").unwrap();
-        // println!("remote_addr: {}", remote_addr);
         let (_, line) = line.split_once("- [").unwrap();
         let (time_local, line) = line.split_once("] \"").unwrap();
-        // println!("time_local: {}", time_local);
         let (request, line) = line.split_once("\" ").unwrap();
-        // println!("request: {}", request);
         let (status, line) = line.split_once(" ").unwrap();
-        // println!("status: {}", status);
         let (body_bytes_send, line) = line.split_once(" \"").unwrap();
-        // println!("body_bytes_send: {}", body_bytes_send);
         let (http_referer, line) = line.split_once("\" \"").unwrap();
-        // println!("http_referer: {}", http_referer);
         let (http_user_agent, line) = line.split_once("\" \"").unwrap();
-        // println!("http_user_agent: {}", http_user_agent);
         let (http_x_forwarded_for, line) = line.split_once("\" \"").unwrap();
-        // println!("http_x_forwarded_for: {}", http_x_forwarded_for);
         let (http_cookie, line) = line.split_once("\" \"").unwrap();
-        // println!("http_cookie: {}", http_cookie);
         let (request_time, line) = line.split_once("\" \"").unwrap();
-        // println!("request_time: {}", request_time);
         let (upstream_response_time, line) = line.split_once("\" \"").unwrap();
-        // println!("upstream_response_time: {}", upstream_response_time);
         let (upstream_addr, line) = line.split_once("\" \"").unwrap();
-        // println!("upstream_addr: {}", upstream_addr);
         let (cookie_coresessionid, _) = line.split_once("\"").unwrap();
-        // println!("cookie_coresessionid: {}", cookie_coresessionid);
         let raw_line = RawLine {
             remote_addr,
             time_local,
@@ -144,7 +130,7 @@ pub fn raw_to_csv() {
             uniform_uri, params, headers, finger, file,
             region, action, browser, platform, static_url
         );
-        zip_writer.write_all(cvs.as_bytes()).unwrap();
+        gz_encoder.write_all(cvs.as_bytes()).unwrap();
     }
-    zip_writer.finish().unwrap();
+    gz_encoder.finish().unwrap();
 }
