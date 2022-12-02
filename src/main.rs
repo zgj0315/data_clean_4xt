@@ -21,9 +21,9 @@ fn main() {
         .with_ansi(true)
         .event_format(format)
         .init();
-
-    // 留一个核心
-    let num_cpus = num_cpus::get() - 1;
+    log::info!("begin clean data");
+    // 取物理核心数
+    let num_cpus = num_cpus::get_physical();
     let thread_counter = Arc::new(Mutex::new(0));
 
     let path = Path::new("./input");
@@ -60,4 +60,5 @@ fn main() {
             }
         }
     }
+    log::info!("end clean data");
 }
