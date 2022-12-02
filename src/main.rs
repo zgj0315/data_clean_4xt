@@ -22,6 +22,7 @@ fn main() {
         .event_format(format)
         .init();
 
+    // 留一个核心
     let num_cpus = num_cpus::get() - 1;
     let thread_counter = Arc::new(Mutex::new(0));
 
