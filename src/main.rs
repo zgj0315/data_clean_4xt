@@ -4,6 +4,18 @@ use lib::raw_to_csv;
 
 mod lib;
 fn main() {
+    let format = tracing_subscriber::fmt::format()
+        .with_level(true)
+        .with_target(true)
+        .with_thread_ids(true)
+        .with_thread_names(true);
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::TRACE)
+        .with_writer(std::io::stdout)
+        .with_ansi(true)
+        .event_format(format)
+        .init();
+
     let path = Path::new("./input");
     if path.is_dir() {
         for entry in fs::read_dir(path).unwrap() {
@@ -16,6 +28,11 @@ fn main() {
                     let file_name = file_name.replace(".gz", ".csv.gz");
                     let file_name = format!("./output/{}", file_name);
                     let output_file = Path::new(&file_name);
+                    log::info!(
+                        "{:?} to {:?}",
+                        path.file_name().unwrap(),
+                        output_file.file_name().unwrap()
+                    );
                     raw_to_csv(&path, output_file);
                 }
             }

@@ -50,8 +50,6 @@ struct RawLine<'a> {
 // cookie_coresessionid: 96770a8e9ad8e169db75a85f40f66a3f980f56d4d21eb47a
 
 pub fn raw_to_csv(input_file: &Path, output_file: &Path) {
-    // let input_file = format!("./data/{}", input_file);
-    // let output_file = format!("./data/{}", output_file);
     let output_file = File::create(output_file).unwrap();
     let mut gz_encoder = flate2::write::GzEncoder::new(output_file, Compression::default());
     let input_file = File::open(input_file).unwrap();
@@ -142,7 +140,10 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let hash = Sha256::digest(b"132.12.35.22");
-        println!("{:?}", hex::encode(hash));
+        let str = "I miss you";
+        let hash = Sha256::digest(str);
+        println!("{} hash: {:?}", str, hex::encode(hash));
+        let num_cpus = num_cpus::get();
+        println!("num_cpus: {}", num_cpus);
     }
 }
