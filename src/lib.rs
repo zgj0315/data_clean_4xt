@@ -2,6 +2,7 @@ use std::{
     fs::File,
     io::{BufRead, BufReader, Write},
     path::Path,
+    sync::{Arc, Mutex},
 };
 
 use flate2::Compression;
@@ -49,7 +50,7 @@ struct RawLine<'a> {
 // upstream_addr: 10.14.79.101:80
 // cookie_coresessionid: 96770a8e9ad8e169db75a85f40f66a3f980f56d4d21eb47a
 
-pub fn raw_to_csv(input_file: &Path, output_file: &Path) {
+pub fn raw_to_csv(input_file: &Path, output_file: &Path, thread_counter: Arc<Mutex<usize>>) {
     let output_file = File::create(output_file).unwrap();
     let mut gz_encoder = flate2::write::GzEncoder::new(output_file, Compression::default());
     let input_file = File::open(input_file).unwrap();
@@ -132,6 +133,9 @@ pub fn raw_to_csv(input_file: &Path, output_file: &Path) {
         gz_encoder.write_all(cvs.as_bytes()).unwrap();
     }
     gz_encoder.finish().unwrap();
+    let mut thread_count = thread_counter.lock().unwrap();
+    *thread_count -= 1;
+    drop(thread_count);
 }
 
 #[cfg(test)]

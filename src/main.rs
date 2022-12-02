@@ -1,4 +1,10 @@
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::Path,
+    sync::{Arc, Mutex},
+    thread::{self, sleep},
+    time::Duration,
+};
 
 use lib::raw_to_csv;
 
@@ -15,6 +21,9 @@ fn main() {
         .with_ansi(true)
         .event_format(format)
         .init();
+
+    let num_cpus = num_cpus::get();
+    let thread_counter = Arc::new(Mutex::new(0));
 
     let path = Path::new("./input");
     if path.is_dir() {
@@ -33,7 +42,19 @@ fn main() {
                         path.file_name().unwrap(),
                         output_file.file_name().unwrap()
                     );
-                    raw_to_csv(&path, output_file);
+                    let thread_counter = Arc::clone(&thread_counter);
+                    loop {
+                        let mut thread_count = thread_counter.lock().unwrap();
+                        if *thread_count >= num_cpus {
+                            drop(thread_count);
+                            sleep(Duration::from_millis(100));
+                        } else {
+                            *thread_count += 1;
+                            drop(thread_count);
+                            break;
+                        }
+                    }
+                    thread::spawn(move || raw_to_csv(&path, output_file, thread_counter));
                 }
             }
         }
