@@ -22,7 +22,7 @@ fn main() {
         .event_format(format)
         .init();
 
-    let num_cpus = num_cpus::get();
+    let num_cpus = num_cpus::get() - 1;
     let thread_counter = Arc::new(Mutex::new(0));
 
     let path = Path::new("./input");
@@ -36,7 +36,7 @@ fn main() {
                 if file_name.starts_with("nginx-access") && file_name.ends_with(".gz") {
                     let file_name = file_name.replace(".gz", ".csv.gz");
                     let file_name = format!("./output/{}", file_name);
-                    let output_file = Path::new(&file_name);
+                    let output_file = Path::new(&file_name).to_path_buf();
                     log::info!(
                         "{:?} to {:?}",
                         path.file_name().unwrap(),
@@ -54,7 +54,7 @@ fn main() {
                             break;
                         }
                     }
-                    thread::spawn(move || raw_to_csv(&path, output_file, thread_counter));
+                    thread::spawn(move || raw_to_csv(&path, &output_file, thread_counter));
                 }
             }
         }
