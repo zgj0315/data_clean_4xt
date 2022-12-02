@@ -136,6 +136,13 @@ pub fn raw_to_csv(input_file: &Path, output_file: &Path) {
 
 #[cfg(test)]
 mod tests {
+    use std::{
+        rc::Rc,
+        sync::{Arc, Mutex},
+        thread::{self, sleep},
+        time::Duration,
+    };
+
     use sha2::{Digest, Sha256};
 
     #[test]
@@ -145,5 +152,29 @@ mod tests {
         println!("{} hash: {:?}", str, hex::encode(hash));
         let num_cpus = num_cpus::get();
         println!("num_cpus: {}", num_cpus);
+        let thread_counter = Arc::new(Mutex::new(0));
+        for _ in 0..100 {
+            let thread_counter = Arc::clone(&thread_counter);
+            loop {
+                let mut thread_count = thread_counter.lock().unwrap();
+                if *thread_count > 5 {
+                    drop(thread_count);
+                    sleep(Duration::from_secs(1));
+                } else {
+                    *thread_count += 1;
+                    drop(thread_count);
+                    break;
+                }
+            }
+            thread::spawn(move || thread_worker(thread_counter));
+        }
+    }
+
+    fn thread_worker(thread_counter: Arc<Mutex<i32>>) {
+        println!("thread worker is working...");
+        sleep(Duration::from_secs(3));
+        let mut thread_count = thread_counter.lock().unwrap();
+        *thread_count -= 1;
+        println!("thread worker is finished");
     }
 }
