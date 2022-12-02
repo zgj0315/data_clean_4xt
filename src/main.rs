@@ -21,7 +21,7 @@ fn main() {
         .with_ansi(true)
         .event_format(format)
         .init();
-
+    log::info!("begin clean data");
     // 取物理核心数
     let num_cpus = num_cpus::get_physical();
     let thread_counter = Arc::new(Mutex::new(0));
@@ -60,4 +60,5 @@ fn main() {
             }
         }
     }
+    log::info!("end clean data");
 }
