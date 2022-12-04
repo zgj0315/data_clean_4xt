@@ -50,18 +50,12 @@ struct RawLine<'a> {
 // upstream_addr: 10.14.79.101:80
 // cookie_coresessionid: 96770a8e9ad8e169db75a85f40f66a3f980f56d4d21eb47a
 
-pub fn raw_to_csv(
-    input_file: &Path,
-    output_file: &Path,
-    ip_file: &Path,
-    thread_counter: Arc<Mutex<usize>>,
-) {
+pub fn raw_to_csv(input_file: &Path, output_file: &Path, thread_counter: Arc<Mutex<usize>>) {
     let output_file = File::create(output_file).unwrap();
     let mut gz_encoder = flate2::write::GzEncoder::new(output_file, Compression::default());
     let input_file = File::open(input_file).unwrap();
     let gz_decoder = flate2::read::GzDecoder::new(input_file);
     let buf_reader = BufReader::new(gz_decoder);
-    let mut ip_vec: Vec<String> = Vec::new();
     for line in buf_reader.lines() {
         let line = line.unwrap();
         let (remote_addr, line) = line.split_once(" ").unwrap();
@@ -99,9 +93,6 @@ pub fn raw_to_csv(
         let id = raw_line.cookie_coresessionid;
         let client_ip = raw_line.remote_addr;
         let ip_str = client_ip.to_string();
-        if !ip_vec.contains(&ip_str) {
-            ip_vec.push(ip_str);
-        }
         let request_time = raw_line.time_local;
         let (method, line) = raw_line.request.split_once(" ").unwrap();
         let (request_uri, _) = line.split_once(" ").unwrap();
@@ -143,9 +134,6 @@ pub fn raw_to_csv(
         gz_encoder.write_all(cvs.as_bytes()).unwrap();
     }
     gz_encoder.finish().unwrap();
-    let ip_content = ip_vec.join("\n");
-    let mut ip_file = File::create(ip_file).unwrap();
-    ip_file.write(ip_content.as_bytes()).unwrap();
     let mut thread_count = thread_counter.lock().unwrap();
     *thread_count -= 1;
     drop(thread_count);
@@ -154,7 +142,6 @@ pub fn raw_to_csv(
 #[cfg(test)]
 mod tests {
     use std::{
-        rc::Rc,
         sync::{Arc, Mutex},
         thread::{self, sleep},
         time::Duration,

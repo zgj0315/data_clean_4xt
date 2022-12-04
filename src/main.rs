@@ -39,12 +39,10 @@ fn main() {
                     let file_name = format!("./output/{}", file_name);
                     let ip_file = format!("{}.ip", file_name);
                     let output_file = Path::new(&file_name).to_path_buf();
-                    let ip_file = Path::new(&ip_file).to_path_buf();
                     log::info!(
-                        "{:?} to {:?}, ip_file: {:?}",
+                        "{:?} to {:?}",
                         path.file_name().unwrap(),
-                        output_file.file_name().unwrap(),
-                        ip_file.file_name().unwrap()
+                        output_file.file_name().unwrap()
                     );
                     let thread_counter = Arc::clone(&thread_counter);
                     loop {
@@ -58,9 +56,7 @@ fn main() {
                             break;
                         }
                     }
-                    thread::spawn(move || {
-                        raw_to_csv(&path, &output_file, &ip_file, thread_counter)
-                    });
+                    thread::spawn(move || raw_to_csv(&path, &output_file, thread_counter));
                 }
             }
         }
