@@ -92,6 +92,7 @@ pub fn raw_to_csv(input_file: &Path, output_file: &Path, thread_counter: Arc<Mut
         };
         let id = raw_line.cookie_coresessionid;
         let client_ip = raw_line.remote_addr;
+        let ip_str = client_ip.to_string();
         let request_time = raw_line.time_local;
         let (method, line) = raw_line.request.split_once(" ").unwrap();
         let (request_uri, _) = line.split_once(" ").unwrap();
@@ -141,7 +142,6 @@ pub fn raw_to_csv(input_file: &Path, output_file: &Path, thread_counter: Arc<Mut
 #[cfg(test)]
 mod tests {
     use std::{
-        rc::Rc,
         sync::{Arc, Mutex},
         thread::{self, sleep},
         time::Duration,
