@@ -37,11 +37,14 @@ fn main() {
                 if file_name.starts_with("nginx-access") && file_name.ends_with(".gz") {
                     let file_name = file_name.replace(".gz", ".csv.gz");
                     let file_name = format!("./output/{}", file_name);
+                    let ip_file = format!("{}.ip", file_name);
                     let output_file = Path::new(&file_name).to_path_buf();
+                    let ip_file = Path::new(&ip_file).to_path_buf();
                     log::info!(
-                        "{:?} to {:?}",
+                        "{:?} to {:?}, ip_file: {:?}",
                         path.file_name().unwrap(),
-                        output_file.file_name().unwrap()
+                        output_file.file_name().unwrap(),
+                        ip_file.file_name().unwrap()
                     );
                     let thread_counter = Arc::clone(&thread_counter);
                     loop {
@@ -55,9 +58,22 @@ fn main() {
                             break;
                         }
                     }
-                    thread::spawn(move || raw_to_csv(&path, &output_file, thread_counter));
+                    thread::spawn(move || {
+                        raw_to_csv(&path, &output_file, &ip_file, thread_counter)
+                    });
                 }
             }
+        }
+    }
+    let thread_counter = Arc::clone(&thread_counter);
+    loop {
+        let thread_count = thread_counter.lock().unwrap();
+        if *thread_count > 0 {
+            drop(thread_count);
+            sleep(Duration::from_millis(1000));
+        } else {
+            drop(thread_count);
+            break;
         }
     }
     log::info!("end clean data");
