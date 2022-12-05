@@ -4,10 +4,12 @@ name = "data_clean_4xt"
 version = "0.1.0"
 
 [dependencies]
+chrono = "0.4"
 flate2 = "1.0"
 hex = "0.4"
 log = "0.4"
 num_cpus = "1.14"
+rand = "0.8"
 sha2 = "0.10"
 tracing = "0.1"
 tracing-subscriber = "0.3"
