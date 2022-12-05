@@ -175,7 +175,7 @@ fn clean_2019() {
             .unwrap();
         let order_time = order_time.timestamp() + rng.gen_range(60 * 60 * 15..60 * 60 * 100);
         let order_time = Local.timestamp_opt(order_time, 0).unwrap();
-        let order_time = order_time.format("%Y-%m-%d %H:%M:%S").to_string();
+        let order_time = order_time.format("%Y-%m-%d %H:%M").to_string();
         let line = format!("{},{},{},{}\n", line, plat_id, price, order_time);
         output_file.write_all(line.as_bytes()).unwrap();
     }
@@ -217,7 +217,7 @@ fn clean_2019() {
             .unwrap();
         let order_time = order_time.timestamp() + rng.gen_range(60 * 60 * 15..60 * 60 * 100);
         let order_time = Local.timestamp_opt(order_time, 0).unwrap();
-        let order_time = order_time.format("%Y-%m-%d %H:%M:%S").to_string();
+        let order_time = order_time.format("%Y-%m-%d %H:%M").to_string();
         let line = format!(
             "{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
             line_vec[0],
