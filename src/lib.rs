@@ -5,7 +5,9 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use chrono::{Datelike, Local, TimeZone, Timelike};
 use flate2::Compression;
+use rand::{thread_rng, Rng};
 use sha2::{Digest, Sha256};
 
 struct RawLine<'a> {
@@ -138,6 +140,104 @@ pub fn raw_to_csv(input_file: &Path, output_file: &Path, thread_counter: Arc<Mut
     drop(thread_count);
 }
 
+fn clean_2019() {
+    let csv_2019 = File::open("./input/20190103.csv").unwrap();
+    let csv_buf_reader = BufReader::new(csv_2019);
+    let mut output_file = File::create("./output/2019.csv").unwrap();
+    let mut rng = thread_rng();
+    let header = "ORDER_NO,ORDER_TIME,ORDER_STATUS,USER_IP,MEMBER_ID,RANGE_TYPE,ORG_CITY,DST_CITY,CONTACTS_NAME,ID,PLAT_ID,PRICE,START_TIME\n";
+    output_file.write_all(header.as_bytes()).unwrap();
+    for line in csv_buf_reader.lines() {
+        let line = line.unwrap();
+        let line = line.replace("\"", "");
+        let plat_id = match rng.gen_range(0..3) {
+            0 => "Android_2014",
+            1 => "iOS_2014",
+            _ => "",
+        };
+        let price = rng.gen_range(200..3000);
+        let line_vec: Vec<&str> = line.split(",").collect();
+        let order_time = line_vec[1];
+        let (day, order_time) = order_time.split_once("/").unwrap();
+        let (month, order_time) = order_time.split_once("/").unwrap();
+        let (year, order_time) = order_time.split_once(" ").unwrap();
+        let (hour, order_time) = order_time.split_once(":").unwrap();
+        let (minute, second) = order_time.split_once(":").unwrap();
+        let order_time = Local
+            .with_ymd_and_hms(
+                year.parse().unwrap(),
+                month.parse().unwrap(),
+                day.parse().unwrap(),
+                hour.parse().unwrap(),
+                minute.parse().unwrap(),
+                second.parse().unwrap(),
+            )
+            .unwrap();
+        let order_time = order_time.timestamp() + rng.gen_range(60 * 60 * 15..60 * 60 * 100);
+        let order_time = Local.timestamp_opt(order_time, 0).unwrap();
+        let order_time = order_time.format("%Y-%m-%d %H:%M:%S").to_string();
+        let line = format!("{},{},{},{}\n", line, plat_id, price, order_time);
+        output_file.write_all(line.as_bytes()).unwrap();
+    }
+
+    let txt_2019 = File::open("./input/20191101.txt").unwrap();
+    let txt_buf_reader = BufReader::new(txt_2019);
+    for line in txt_buf_reader.lines() {
+        let line = line.unwrap();
+        let line = line.replace("\"", "");
+        if line.starts_with("ORDER_NO") {
+            continue;
+        }
+        let line_vec: Vec<&str> = line.split("\t").collect();
+        let user_ip = line_vec[3];
+        let user_ip = {
+            if user_ip.len() > 0 {
+                let user_ip: Vec<&str> = user_ip.split(",").collect();
+                user_ip[0]
+            } else {
+                ""
+            }
+        };
+        let price = rng.gen_range(200..3000);
+        let order_time = line_vec[1];
+        let (day, order_time) = order_time.split_once("/").unwrap();
+        let (month, order_time) = order_time.split_once("/").unwrap();
+        let (year, order_time) = order_time.split_once(" ").unwrap();
+        let (hour, order_time) = order_time.split_once(":").unwrap();
+        let (minute, second) = order_time.split_once(":").unwrap();
+        let order_time = Local
+            .with_ymd_and_hms(
+                year.parse().unwrap(),
+                month.parse().unwrap(),
+                day.parse().unwrap(),
+                hour.parse().unwrap(),
+                minute.parse().unwrap(),
+                second.parse().unwrap(),
+            )
+            .unwrap();
+        let order_time = order_time.timestamp() + rng.gen_range(60 * 60 * 15..60 * 60 * 100);
+        let order_time = Local.timestamp_opt(order_time, 0).unwrap();
+        let order_time = order_time.format("%Y-%m-%d %H:%M:%S").to_string();
+        let line = format!(
+            "{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
+            line_vec[0],
+            line_vec[1],
+            line_vec[2],
+            user_ip,
+            line_vec[4],
+            line_vec[5],
+            line_vec[6],
+            line_vec[7],
+            line_vec[8],
+            line_vec[9],
+            line_vec[10],
+            price,
+            order_time
+        );
+        output_file.write_all(line.as_bytes()).unwrap();
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::{
@@ -147,6 +247,8 @@ mod tests {
     };
 
     use sha2::{Digest, Sha256};
+
+    use super::clean_2019;
 
     #[test]
     fn it_works() {
@@ -179,5 +281,9 @@ mod tests {
         let mut thread_count = thread_counter.lock().unwrap();
         *thread_count -= 1;
         println!("thread worker is finished");
+    }
+    #[test]
+    fn test_clean_2019() {
+        clean_2019();
     }
 }
