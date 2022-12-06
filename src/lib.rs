@@ -5,7 +5,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use chrono::{Datelike, Local, TimeZone, Timelike};
+use chrono::{Local, TimeZone};
 use flate2::Compression;
 use rand::{thread_rng, Rng};
 use sha2::{Digest, Sha256};
@@ -18,14 +18,21 @@ struct RawLine<'a> {
     body_bytes_send: &'a str,
     http_referer: &'a str,
     http_user_agent: &'a str,
+    #[allow(dead_code)]
     http_x_forwarded_for: &'a str,
     http_cookie: &'a str,
+    #[allow(dead_code)]
     request_time: &'a str,
+    #[allow(dead_code)]
     upstream_response_time: &'a str,
+    #[allow(dead_code)]
     upstream_addr: &'a str,
     cookie_coresessionid: &'a str,
+    #[allow(dead_code)]
     http_x_maa_mark: &'a str,
+    #[allow(dead_code)]
     http_cdn_src_ip: &'a str,
+    #[allow(dead_code)]
     http_x_maa_chainmark: &'a str,
 }
 
@@ -140,6 +147,7 @@ pub fn raw_to_csv(input_file: &Path, output_file: &Path, thread_counter: Arc<Mut
     drop(thread_count);
 }
 
+#[allow(dead_code)]
 fn clean_2019() {
     let csv_2019 = File::open("./input/20190103.csv").unwrap();
     let csv_buf_reader = BufReader::new(csv_2019);
